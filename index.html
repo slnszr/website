@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Anomalyze - Intelligent Anomaly Analyzer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+      background-color: white;
+      color: black;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .result-box {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      font-weight: bold;
+      width: 50%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .normal {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .anomalous {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+
+    .toggle-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 6px 14px;
+      border: none;
+      background-color: #444;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .toggle-btn:hover {
+      background-color: #666;
+    }
+  </style>
+</head>
+<body>
+  <button class="toggle-btn" onclick="toggleDarkMode()">🌗 Dark Mode</button>
+
+  <h2>🛡️ Anomalyze - Intelligent Anomaly Analyzer</h2>
+  <label for="size">Enter Packet Size (bytes):</label>
+  <input type="number" id="size" />
+  <button onclick="sendPacket()">Predict</button>
+
+  <div id="result"></div>
+
+  <script>
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+
+    async function sendPacket() {
+      const size = document.getElementById("size").value;
+      const res = await fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packet_size: parseInt(size) })
+      });
+
+      const data = await res.json();
+      console.log(data);
+
+      const resultEl = document.getElementById("result");
+
+      if (data.prediction && data.confidence !== undefined) {
+        const isNormal = data.prediction === "Normal";
+        resultEl.innerHTML = `
+          <div class="result-box ${isNormal ? 'normal' : 'anomalous'}">
+            ${isNormal ? '✅' : '⚠️'} Prediction: ${data.prediction} (${data.confidence}% confidence)
+          </div>
+        `;
+      } else {
+        resultEl.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>
